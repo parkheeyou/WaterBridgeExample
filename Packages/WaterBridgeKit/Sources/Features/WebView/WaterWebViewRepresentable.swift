@@ -1,0 +1,291 @@
+#if canImport(UIKit) && canImport(WebKit)
+import SwiftUI
+import WaterBridgeCore
+import WebKit
+
+// 웹뷰 설정
+struct WaterWebViewRepresentable: UIViewRepresentable {
+    let url: URL
+    let bridgeConfiguration: WaterBridgeConfiguration
+    @Binding var isLoading: Bool
+    @Binding var errorMessage: String?
+    let onBridgeMessage: WaterBridgeMessageHandler
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+
+    func makeUIView(context: Context) -> WKWebView {
+        let userContentController = WKUserContentController()
+        userContentController.addScriptMessageHandler(
+            context.coordinator,
+            contentWorld: .page,
+            name: context.coordinator.channel
+        )
+        // userContentController.addUserScript(Self.bridgeBootstrapScript)
+
+        let webViewConfiguration = WKWebViewConfiguration()
+        webViewConfiguration.defaultWebpagePreferences.allowsContentJavaScript = true
+        webViewConfiguration.userContentController = userContentController
+
+        let webView = WKWebView(
+            frame: .zero,
+            configuration: webViewConfiguration
+        )
+        context.coordinator.webView = webView
+        webView.navigationDelegate = context.coordinator
+        webView.uiDelegate = context.coordinator
+        webView.allowsBackForwardNavigationGestures = true
+        webView.scrollView.contentInsetAdjustmentBehavior = .automatic
+        webView.isInspectable = true
+        WaterBridgeLogger.webViewLoadRequested(url: url)
+        webView.load(URLRequest(url: url))
+
+        return webView
+    }
+
+    func updateUIView(_ webView: WKWebView, context: Context) {
+        context.coordinator.parent = self
+    }
+
+    static func dismantleUIView(_ webView: WKWebView, coordinator: Coordinator) {
+        webView.configuration.userContentController.removeScriptMessageHandler(
+            forName: coordinator.channel
+        )
+        webView.navigationDelegate = nil
+        webView.uiDelegate = nil
+        coordinator.webView = nil
+    }
+
+    final class Coordinator: NSObject, WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandlerWithReply {
+        var parent: WaterWebViewRepresentable
+        let channel: String
+        private let router: WaterBridgeRouter
+        weak var webView: WKWebView?
+        private var loadStartedAt: Date?
+
+        init(_ parent: WaterWebViewRepresentable) {
+            self.parent = parent
+            self.channel = parent.bridgeConfiguration.channel
+            self.router = WaterBridgeRouter(
+                configuration: parent.bridgeConfiguration
+            )
+        }
+
+        func userContentController(
+            _ userContentController: WKUserContentController,
+            didReceive message: WKScriptMessage,
+            replyHandler: @escaping @MainActor (Any?, String?) -> Void
+        ) {
+            guard message.name == channel,
+                  message.frameInfo.isMainFrame else {
+                WaterBridgeLogger.rejected(
+                    reason: "허용되지 않은 채널 또는 프레임입니다.",
+                    body: message.body
+                )
+                replyHandler(nil, "허용되지 않은 브릿지 메시지입니다.")
+                return
+            }
+
+            let bridgeMessage = WaterBridgeMessage(
+                channel: message.name,
+                body: message.body,
+                sourceURL: message.frameInfo.request.url
+            )
+            handleBridgeMessage(
+                bridgeMessage,
+                replyHandler: replyHandler
+            )
+        }
+
+        func webView(
+            _ webView: WKWebView,
+            decidePolicyFor navigationAction: WKNavigationAction,
+            decisionHandler: @escaping (WKNavigationActionPolicy) -> Void
+        ) {
+            guard let url = navigationAction.request.url,
+                  url.scheme?.lowercased() == "water" else {
+                decisionHandler(.allow)
+                return
+            }
+
+            let bridgeMessage = WaterBridgeMessage(
+                channel: channel,
+                body: url.absoluteString,
+                sourceURL: webView.url
+            )
+            handleBridgeMessage(bridgeMessage)
+            decisionHandler(.cancel)
+        }
+
+        private func handleBridgeMessage(
+            _ bridgeMessage: WaterBridgeMessage,
+            replyHandler: (@MainActor (Any?, String?) -> Void)? = nil
+        ) {
+            WaterBridgeLogger.received(bridgeMessage)
+            parent.onBridgeMessage(bridgeMessage)
+
+            guard let api = bridgeMessage.api else {
+                WaterBridgeLogger.rejected(
+                    reason: "브릿지 API를 확인할 수 없습니다.",
+                    body: bridgeMessage.body
+                )
+                replyHandler?(nil, nil)
+                return
+            }
+
+            let response = router.response(for: bridgeMessage)
+            WaterBridgeLogger.responded(api: api, response: response)
+
+            if let callback = bridgeMessage.callback,
+               let webView {
+                WaterBridgeCallbackResponder.respond(
+                    api: api,
+                    callback: callback,
+                    response: response,
+                    in: webView
+                )
+            }
+
+            replyHandler?(response, nil)
+        }
+
+        func webView(
+            _ webView: WKWebView,
+            didStartProvisionalNavigation navigation: WKNavigation!
+        ) {
+            loadStartedAt = Date()
+            parent.isLoading = true
+            parent.errorMessage = nil
+            WaterBridgeLogger.webViewNavigationStarted(url: webView.url ?? parent.url)
+        }
+
+        func webView(
+            _ webView: WKWebView,
+            didCommit navigation: WKNavigation!
+        ) {
+            WaterBridgeLogger.webViewContentCommitted(url: webView.url)
+        }
+
+        func webView(
+            _ webView: WKWebView,
+            didFinish navigation: WKNavigation!
+        ) {
+            parent.isLoading = false
+            WaterBridgeLogger.webViewLoadFinished(
+                url: webView.url,
+                elapsedTime: elapsedTime
+            )
+            loadStartedAt = nil
+        }
+
+        func webView(
+            _ webView: WKWebView,
+            didFail navigation: WKNavigation!,
+            withError error: Error
+        ) {
+            show(error, in: webView)
+        }
+
+        func webView(
+            _ webView: WKWebView,
+            didFailProvisionalNavigation navigation: WKNavigation!,
+            withError error: Error
+        ) {
+            show(error, in: webView)
+        }
+
+        func webView(
+            _ webView: WKWebView,
+            createWebViewWith configuration: WKWebViewConfiguration,
+            for navigationAction: WKNavigationAction,
+            windowFeatures: WKWindowFeatures
+        ) -> WKWebView? {
+            if navigationAction.targetFrame == nil,
+               let url = navigationAction.request.url {
+                WaterBridgeLogger.webViewLoadRequested(url: url)
+                webView.load(URLRequest(url: url))
+            }
+            return nil
+        }
+
+        private var elapsedTime: TimeInterval? {
+            loadStartedAt.map { Date().timeIntervalSince($0) }
+        }
+
+        private func show(
+            _ error: Error,
+            in webView: WKWebView
+        ) {
+            let nsError = error as NSError
+            if nsError.code == NSURLErrorCancelled {
+                WaterBridgeLogger.webViewLoadCancelled(url: webView.url)
+                loadStartedAt = nil
+                return
+            }
+
+            WaterBridgeLogger.webViewLoadFailed(
+                url: webView.url ?? parent.url,
+                error: error,
+                elapsedTime: elapsedTime
+            )
+            loadStartedAt = nil
+            parent.isLoading = false
+            parent.errorMessage = error.localizedDescription
+        }
+    }
+
+//    private static let bridgeBootstrapScript = WKUserScript(
+//        source: """
+//        (() => {
+//          const call = function(api, payload) {
+//            return window.webkit.messageHandlers.waterBridge.postMessage({
+//              api: api,
+//              payload: payload === undefined ? null : payload
+//            });
+//          };
+//
+//          const callWithCallback = function(api, params, callback) {
+//            return call(api, params)
+//              .then((response) => {
+//                if (typeof callback === "function") callback(response);
+//                return response;
+//              })
+//              .catch((error) => {
+//                const response = {
+//                  status: {
+//                    code: "9999",
+//                    message: error && error.message
+//                      ? error.message
+//                      : "브릿지 호출에 실패했습니다."
+//                  },
+//                  data: null
+//                };
+//                if (typeof callback === "function") callback(response);
+//                return response;
+//              });
+//          };
+//
+//          window.WaterBridge = Object.freeze({
+//            call: call,
+//            postMessage: function(action, payload) {
+//              return window.webkit.messageHandlers.waterBridge.postMessage({
+//              action: action,
+//              payload: payload === undefined ? null : payload
+//            });
+//            },
+//            routeApiList: function(params, callback) {
+//              return callWithCallback(
+//                "water://routeApiList",
+//                params || {},
+//                callback
+//              );
+//            }
+//          });
+//        })();
+//        """,
+//        injectionTime: .atDocumentStart,
+//        forMainFrameOnly: true
+//    )
+}
+#endif
