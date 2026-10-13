@@ -2,7 +2,9 @@ import SwiftUI
 import WaterBridgeKit
 
 struct ContentView: View {
-    @State private var address = "https://example.com"
+    private static let lastWebURLKey = "WaterBridgeExample.lastWebURL"
+
+    @State private var address = UserDefaults.standard.string(forKey: ContentView.lastWebURLKey) ?? "https://example.com"
     @State private var destinations: [URL] = []
     @State private var validationError: String?
     @State private var showsReports = false
@@ -97,6 +99,7 @@ struct ContentView: View {
         }
         validationError = nil
         address = normalized
+        UserDefaults.standard.set(normalized, forKey: Self.lastWebURLKey)
         WaterDebugLogger.event("URL 입력 화면에서 웹뷰로 이동")
         destinations.append(url)
     }
