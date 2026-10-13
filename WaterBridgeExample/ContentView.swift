@@ -6,6 +6,7 @@ struct ContentView: View {
     @State private var destinations: [URL] = []
     @State private var validationError: String?
     @State private var showsReports = false
+    @State private var showsSessionDemo = false
     @StateObject private var permissions = WaterPermissionManager()
 
     var body: some View {
@@ -36,6 +37,9 @@ struct ContentView: View {
                         }
                         WaterDebugLogger.event("브릿지 테스트 페이지 열기")
                         destinations.append(url)
+                    }
+                    Button("앱·웹 세션 동기화", systemImage: "arrow.triangle.2.circlepath") {
+                        showsSessionDemo = true
                     }
                     Button("크래시 보고서", systemImage: "doc.text.magnifyingglass") {
                         showsReports = true
@@ -72,6 +76,7 @@ struct ContentView: View {
                 BrowserView(url: url)
             }
             .sheet(isPresented: $showsReports) { CrashReportsView() }
+            .sheet(isPresented: $showsSessionDemo) { SessionDemoView() }
             .waterDebugConsole()
             .waterPermissionAlerts(using: permissions)
         }
@@ -97,8 +102,14 @@ struct ContentView: View {
     }
 }
 
-private struct BrowserView: View {
+struct BrowserView: View {
     let url: URL
+    let sessionSynchronizer: WaterSessionSynchronizer?
+
+    init(url: URL, sessionSynchronizer: WaterSessionSynchronizer? = nil) {
+        self.url = url
+        self.sessionSynchronizer = sessionSynchronizer
+    }
     @State private var reloadID = UUID()
 
     private var configuration: WaterBridgeConfiguration {
@@ -110,7 +121,7 @@ private struct BrowserView: View {
                     "requestData": message.data as? [String: Any] ?? [:]
                 ]).value
             }
-        ])
+        ], sessionSynchronizer: sessionSynchronizer)
     }
 
     var body: some View {

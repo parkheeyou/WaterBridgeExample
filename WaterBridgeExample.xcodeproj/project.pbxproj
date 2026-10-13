@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+        A00000000000000000000044 /* SessionDemoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000035 /* SessionDemoView.swift */; };
 		A00000000000000000000022 /* WaterBridgeKit in Frameworks */ = {isa = PBXBuildFile; productRef = A00000000000000000000021 /* WaterBridgeKit */; };
 		A00000000000000000000040 /* WaterBridgeExampleApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000030 /* WaterBridgeExampleApp.swift */; };
 		A00000000000000000000041 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000031 /* ContentView.swift */; };
@@ -15,6 +16,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+        A00000000000000000000035 /* SessionDemoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionDemoView.swift; sourceTree = "<group>"; };
 		A00000000000000000000009 /* WaterBridgeExample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WaterBridgeExample.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A00000000000000000000030 /* WaterBridgeExampleApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaterBridgeExampleApp.swift; sourceTree = "<group>"; };
 		A00000000000000000000031 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -57,6 +59,7 @@
 				A00000000000000000000030 /* WaterBridgeExampleApp.swift */,
 				A00000000000000000000031 /* ContentView.swift */,
 				A00000000000000000000032 /* CrashReportsView.swift */,
+				A00000000000000000000035 /* SessionDemoView.swift */,
 				A00000000000000000000033 /* Resources/bridge-demo.html */,
 				A00000000000000000000034 /* Info.plist */,
 			);
@@ -135,6 +138,7 @@
 				A00000000000000000000040 /* WaterBridgeExampleApp.swift in Sources */,
 				A00000000000000000000041 /* ContentView.swift in Sources */,
 				A00000000000000000000042 /* CrashReportsView.swift in Sources */,
+				A00000000000000000000044 /* SessionDemoView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
