@@ -6,6 +6,7 @@ struct ContentView: View {
     @State private var destinations: [URL] = []
     @State private var validationError: String?
     @State private var showsReports = false
+    @StateObject private var permissions = WaterPermissionManager()
 
     var body: some View {
         NavigationStack(path: $destinations) {
@@ -43,6 +44,23 @@ struct ContentView: View {
                         WaterDebugLogger.event("사용자가 샘플 이벤트 버튼을 선택했습니다.")
                     }
                 }
+                Section("권한 요청 예제") {
+                    ForEach(WaterPermission.allCases) { permission in
+                        Button {
+                            Task { await permissions.ensurePermission(permission) }
+                        } label: {
+                            HStack {
+                                Text(permission.title)
+                                Spacer()
+                                Text(permissions.statuses[permission]?.title ?? "확인 중")
+                                    .font(.caption).foregroundStyle(.secondary)
+                            }
+                        }
+                        .disabled(permissions.isRequesting)
+                    }
+                    Text("최초 요청은 시스템 권한 창을 표시합니다. 거부된 경우 설정 이동 안내를 표시하며, 설정에서 돌아오면 상태를 갱신합니다.")
+                        .font(.footnote).foregroundStyle(.secondary)
+                }
                 Section("사용 안내") {
                     Text("브릿지 채널: Bridge\n기본 API: routeApiList, nativeInfo\n앱 추가 API: appInfo")
                     Text("DEBUG 빌드에서는 오른쪽 아래 로그 버튼으로 WEBVIEW, BRIDGE, EVENT, CRASH 로그를 확인할 수 있습니다.")
@@ -55,6 +73,7 @@ struct ContentView: View {
             }
             .sheet(isPresented: $showsReports) { CrashReportsView() }
             .waterDebugConsole()
+            .waterPermissionAlerts(using: permissions)
         }
     }
 
