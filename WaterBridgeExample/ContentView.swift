@@ -32,21 +32,40 @@ struct ContentView: View {
                     Button("웹뷰로 이동", systemImage: "arrow.up.right.square", action: openAddress)
                 }
                 Section("라이브러리 예제") {
-                    Button("브릿지 테스트 페이지", systemImage: "link") {
-                        guard let url = Bundle.main.url(forResource: "bridge-demo", withExtension: "html") else {
+                    Button(
+                        "브릿지 테스트 페이지",
+                        systemImage: "link"
+                    ) {
+                        guard let url = Bundle.main.url(
+                            forResource: "bridge-demo",
+                            withExtension: "html"
+                        ) else {
                             validationError = "브릿지 테스트 파일을 찾을 수 없습니다."
                             return
                         }
+                        
                         WaterDebugLogger.event("브릿지 테스트 페이지 열기")
                         destinations.append(url)
                     }
-                    Button("앱·웹 세션 동기화", systemImage: "arrow.triangle.2.circlepath") {
+                    
+                    Button(
+                        "앱·웹 세션 동기화",
+                        systemImage: "arrow.triangle.2.circlepath"
+                    ) {
                         showsSessionDemo = true
                     }
-                    Button("크래시 보고서", systemImage: "doc.text.magnifyingglass") {
+                    
+                    Button(
+                        "크래시 보고서",
+                        systemImage: "doc.text.magnifyingglass"
+                    ) {
                         showsReports = true
                     }
-                    Button("샘플 이벤트 로그 기록", systemImage: "text.badge.plus") {
+                    
+                    Button(
+                        "샘플 이벤트 로그 기록",
+                        systemImage: "text.badge.plus"
+                    ) {
                         WaterDebugLogger.event("사용자가 샘플 이벤트 버튼을 선택했습니다.")
                     }
                 }
