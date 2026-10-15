@@ -3,32 +3,44 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 60;
+	objectVersion = 77;
 	objects = {
 
 /* Begin PBXBuildFile section */
-		A00000000000000000000022 /* WaterBridgeKit in Frameworks */ = {isa = PBXBuildFile; productRef = A00000000000000000000021 /* WaterBridgeKit */; };
-		A00000000000000000000040 /* WaterBridgeExampleApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000030 /* WaterBridgeExampleApp.swift */; };
-		A00000000000000000000041 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000031 /* ContentView.swift */; };
-		A00000000000000000000042 /* CrashReportsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000032 /* CrashReportsView.swift */; };
-		A00000000000000000000043 /* Resources/bridge-demo.html in Resources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000033 /* Resources/bridge-demo.html */; };
+		BEB1A4A530808CCF009209BD /* WaterBridgeKit in Frameworks */ = {isa = PBXBuildFile; productRef = BEB1A4A430808CCF009209BD /* WaterBridgeKit */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		A00000000000000000000009 /* WaterBridgeExample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WaterBridgeExample.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		A00000000000000000000030 /* WaterBridgeExampleApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaterBridgeExampleApp.swift; sourceTree = "<group>"; };
-		A00000000000000000000031 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
-		A00000000000000000000032 /* CrashReportsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrashReportsView.swift; sourceTree = "<group>"; };
-		A00000000000000000000033 /* Resources/bridge-demo.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = "Resources/bridge-demo.html"; sourceTree = "<group>"; };
-		A00000000000000000000034 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		A00000000000000000000050 /* Exceptions for "WaterBridgeExample" folder in "WaterBridgeExample" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = A00000000000000000000005 /* WaterBridgeExample */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		A00000000000000000000008 /* WaterBridgeExample */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				A00000000000000000000050 /* Exceptions for "WaterBridgeExample" folder in "WaterBridgeExample" target */,
+			);
+			path = WaterBridgeExample;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		A00000000000000000000012 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A00000000000000000000022 /* WaterBridgeKit in Frameworks */,
+				BEB1A4A530808CCF009209BD /* WaterBridgeKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -51,18 +63,6 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		A00000000000000000000008 /* WaterBridgeExample */ = {
-			isa = PBXGroup;
-			children = (
-				A00000000000000000000030 /* WaterBridgeExampleApp.swift */,
-				A00000000000000000000031 /* ContentView.swift */,
-				A00000000000000000000032 /* CrashReportsView.swift */,
-				A00000000000000000000033 /* Resources/bridge-demo.html */,
-				A00000000000000000000034 /* Info.plist */,
-			);
-			path = WaterBridgeExample;
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -78,9 +78,12 @@
 			);
 			dependencies = (
 			);
+			fileSystemSynchronizedGroups = (
+				A00000000000000000000008 /* WaterBridgeExample */,
+			);
 			name = WaterBridgeExample;
 			packageProductDependencies = (
-				A00000000000000000000021 /* WaterBridgeKit */,
+				BEB1A4A430808CCF009209BD /* WaterBridgeKit */,
 			);
 			productName = WaterBridgeExample;
 			productReference = A00000000000000000000009 /* WaterBridgeExample.app */;
@@ -95,7 +98,6 @@
 				LastUpgradeCheck = 2600;
 			};
 			buildConfigurationList = A00000000000000000000002 /* Build configuration list for PBXProject "WaterBridgeExample" */;
-			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -105,8 +107,9 @@
 			);
 			mainGroup = A00000000000000000000003;
 			packageReferences = (
-				A00000000000000000000020 /* XCLocalSwiftPackageReference "Packages/WaterBridgeKit" */,
+				BEB1A4A330808CCF009209BD /* XCLocalSwiftPackageReference "../library/WaterBridgeKit" */,
 			);
+			preferredProjectObjectVersion = 77;
 			productRefGroup = A00000000000000000000004 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -121,7 +124,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A00000000000000000000043 /* Resources/bridge-demo.html in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -132,9 +134,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A00000000000000000000040 /* WaterBridgeExampleApp.swift in Sources */,
-				A00000000000000000000041 /* ContentView.swift in Sources */,
-				A00000000000000000000042 /* CrashReportsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -226,16 +225,15 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		A00000000000000000000020 /* XCLocalSwiftPackageReference "Packages/WaterBridgeKit" */ = {
+		BEB1A4A330808CCF009209BD /* XCLocalSwiftPackageReference "../library/WaterBridgeKit" */ = {
 			isa = XCLocalSwiftPackageReference;
-			relativePath = Packages/WaterBridgeKit;
+			relativePath = ../library/WaterBridgeKit;
 		};
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		A00000000000000000000021 /* WaterBridgeKit */ = {
+		BEB1A4A430808CCF009209BD /* WaterBridgeKit */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = A00000000000000000000020 /* XCLocalSwiftPackageReference "Packages/WaterBridgeKit" */;
 			productName = WaterBridgeKit;
 		};
 /* End XCSwiftPackageProductDependency section */

@@ -2,10 +2,14 @@ import SwiftUI
 import WaterBridgeKit
 
 struct ContentView: View {
-    @State private var address = "https://example.com"
+    private static let lastWebURLKey = "WaterBridgeExample.lastWebURL"
+
+    @State private var address = UserDefaults.standard.string(forKey: ContentView.lastWebURLKey) ?? "https://example.com"
     @State private var destinations: [URL] = []
     @State private var validationError: String?
     @State private var showsReports = false
+    @State private var showsSessionDemo = false
+    @StateObject private var permissions = WaterPermissionManager()
 
     var body: some View {
         NavigationStack(path: $destinations) {
@@ -28,20 +32,59 @@ struct ContentView: View {
                     Button("웹뷰로 이동", systemImage: "arrow.up.right.square", action: openAddress)
                 }
                 Section("라이브러리 예제") {
-                    Button("브릿지 테스트 페이지", systemImage: "link") {
-                        guard let url = Bundle.main.url(forResource: "bridge-demo", withExtension: "html") else {
+                    Button(
+                        "브릿지 테스트 페이지",
+                        systemImage: "link"
+                    ) {
+                        guard let url = Bundle.main.url(
+                            forResource: "bridge-demo",
+                            withExtension: "html"
+                        ) else {
                             validationError = "브릿지 테스트 파일을 찾을 수 없습니다."
                             return
                         }
+                        
                         WaterDebugLogger.event("브릿지 테스트 페이지 열기")
                         destinations.append(url)
                     }
-                    Button("크래시 보고서", systemImage: "doc.text.magnifyingglass") {
+                    
+                    Button(
+                        "앱·웹 세션 동기화",
+                        systemImage: "arrow.triangle.2.circlepath"
+                    ) {
+                        showsSessionDemo = true
+                    }
+                    
+                    Button(
+                        "크래시 보고서",
+                        systemImage: "doc.text.magnifyingglass"
+                    ) {
                         showsReports = true
                     }
-                    Button("샘플 이벤트 로그 기록", systemImage: "text.badge.plus") {
+                    
+                    Button(
+                        "샘플 이벤트 로그 기록",
+                        systemImage: "text.badge.plus"
+                    ) {
                         WaterDebugLogger.event("사용자가 샘플 이벤트 버튼을 선택했습니다.")
                     }
+                }
+                Section("권한 요청 예제") {
+                    ForEach(WaterPermission.allCases) { permission in
+                        Button {
+                            Task { await permissions.ensurePermission(permission) }
+                        } label: {
+                            HStack {
+                                Text(permission.title)
+                                Spacer()
+                                Text(permissions.statuses[permission]?.title ?? "확인 중")
+                                    .font(.caption).foregroundStyle(.secondary)
+                            }
+                        }
+                        .disabled(permissions.isRequesting)
+                    }
+                    Text("최초 요청은 시스템 권한 창을 표시합니다. 거부된 경우 설정 이동 안내를 표시하며, 설정에서 돌아오면 상태를 갱신합니다.")
+                        .font(.footnote).foregroundStyle(.secondary)
                 }
                 Section("사용 안내") {
                     Text("브릿지 채널: Bridge\n기본 API: routeApiList, nativeInfo\n앱 추가 API: appInfo")
@@ -54,7 +97,9 @@ struct ContentView: View {
                 BrowserView(url: url)
             }
             .sheet(isPresented: $showsReports) { CrashReportsView() }
+            .sheet(isPresented: $showsSessionDemo) { SessionDemoView() }
             .waterDebugConsole()
+            .waterPermissionAlerts(using: permissions)
         }
     }
 
@@ -73,13 +118,20 @@ struct ContentView: View {
         }
         validationError = nil
         address = normalized
+        UserDefaults.standard.set(normalized, forKey: Self.lastWebURLKey)
         WaterDebugLogger.event("URL 입력 화면에서 웹뷰로 이동")
         destinations.append(url)
     }
 }
 
-private struct BrowserView: View {
+struct BrowserView: View {
     let url: URL
+    let sessionSynchronizer: WaterSessionSynchronizer?
+
+    init(url: URL, sessionSynchronizer: WaterSessionSynchronizer? = nil) {
+        self.url = url
+        self.sessionSynchronizer = sessionSynchronizer
+    }
     @State private var reloadID = UUID()
 
     private var configuration: WaterBridgeConfiguration {
@@ -91,7 +143,7 @@ private struct BrowserView: View {
                     "requestData": message.data as? [String: Any] ?? [:]
                 ]).value
             }
-        ])
+        ], sessionSynchronizer: sessionSynchronizer)
     }
 
     var body: some View {
