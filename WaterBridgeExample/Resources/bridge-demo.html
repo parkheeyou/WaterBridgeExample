@@ -28,6 +28,9 @@
         <input id="destination-url" type="url" value="https://example.com" autocapitalize="off" spellcheck="false">
         <button data-api="openSafari">외부 브라우저로 열기</button>
         <button data-api="openWebView">앱 내부 웹뷰로 열기</button>
+        <label for="alert-message">알림 메시지</label>
+        <input id="alert-message" type="text" value="처리가 완료되었습니다.">
+        <button data-api="alert">메시지 알림 표시</button>
         <button data-api="exit">앱 종료 · 확인 다이얼로그</button>
         <button data-api="unknownAPI">미지원 API 응답</button>
         
@@ -44,7 +47,9 @@
                         const opensPage = ['openSafari', 'openWebView'].includes(button.dataset.api);
                         const message = opensPage
                             ? api + '?url=' + encodeURIComponent(document.getElementById('destination-url').value)
-                            : {api, data: {source: 'bridge-demo'}};
+                            : button.dataset.api === 'alert'
+                                ? api + '?message=' + encodeURIComponent(document.getElementById('alert-message').value)
+                                : {api, data: {source: 'bridge-demo'}};
                         const response = await handler.postMessage(message);
                         output.textContent = JSON.stringify(response, null, 2);
                     } catch (error) { output.textContent = error.message; }
