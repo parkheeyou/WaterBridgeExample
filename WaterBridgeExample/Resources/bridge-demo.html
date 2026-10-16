@@ -13,6 +13,7 @@
             pre{
                 white-space:pre-wrap;overflow-wrap:anywhere;background:white;padding:16px;border-radius:12px
             }
+            input{box-sizing:border-box;width:100%;padding:12px;margin:8px 0;font:inherit;border:1px solid #bacbd6;border-radius:8px}
             p{line-height:1.6}
         </style>
     </head>
@@ -23,6 +24,13 @@
         <button data-api="routeApiList">지원 API 목록</button>
         <button data-api="nativeInfo">네이티브 정보</button>
         <button data-api="appInfo">앱 정보 · 커스텀 Route</button>
+        <label for="destination-url">이동할 웹 URL</label>
+        <input id="destination-url" type="url" value="https://example.com" autocapitalize="off" spellcheck="false">
+        <button data-api="openSafari">외부 브라우저로 열기</button>
+        <button data-api="openWebView">앱 내부 웹뷰로 열기</button>
+        <label for="alert-message">알림 메시지</label>
+        <input id="alert-message" type="text" value="처리가 완료되었습니다.">
+        <button data-api="alert">메시지 알림 표시</button>
         <button data-api="exit">앱 종료 · 확인 다이얼로그</button>
         <button data-api="unknownAPI">미지원 API 응답</button>
         
@@ -35,7 +43,14 @@
                     try {
                         const handler = window.webkit?.messageHandlers?.Bridge;
                         if (!handler) throw new Error('WaterBridgeExample 앱의 웹뷰에서 열어주세요.');
-                        const response = await handler.postMessage({api: 'water://' + button.dataset.api, data: {source: 'bridge-demo'}});
+                        const api = 'water://' + button.dataset.api;
+                        const opensPage = ['openSafari', 'openWebView'].includes(button.dataset.api);
+                        const message = opensPage
+                            ? api + '?url=' + encodeURIComponent(document.getElementById('destination-url').value)
+                            : button.dataset.api === 'alert'
+                                ? api + '?message=' + encodeURIComponent(document.getElementById('alert-message').value)
+                                : {api, data: {source: 'bridge-demo'}};
+                        const response = await handler.postMessage(message);
                         output.textContent = JSON.stringify(response, null, 2);
                     } catch (error) { output.textContent = error.message; }
                 });
