@@ -88,7 +88,7 @@ struct ContentView: View {
                 }
                 Section("사용 안내") {
                     Text("브릿지 채널: Bridge\n기본 API: routeApiList, nativeInfo\n앱 추가 API: appInfo")
-                    Text("DEBUG 빌드에서는 오른쪽 아래 로그 버튼으로 WEBVIEW, BRIDGE, EVENT, CRASH 로그를 확인할 수 있습니다.")
+                    Text("DEBUG 빌드에서는 오른쪽 아래 크래시·로그 버튼으로 저장된 크래시 보고서와 WEBVIEW, BRIDGE, EVENT, CRASH 로그를 확인할 수 있습니다.")
                     Text("크래시 보고서는 다음 앱 실행에서 복구됩니다. 디버거가 연결된 동안에는 크래시 수집이 비활성화됩니다.")
                 }.font(.footnote)
             }
@@ -135,15 +135,20 @@ struct BrowserView: View {
     @State private var reloadID = UUID()
 
     private var configuration: WaterBridgeConfiguration {
-        WaterBridgeConfiguration(additionalRoutes: [
-            WaterBridgeRoute(api: "water://appInfo", version: 1) { message in
-                WaterBridgeResponse.success(data: [
-                    "appName": "WaterBridgeExample",
-                    "version": Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0",
-                    "requestData": message.data as? [String: Any] ?? [:]
-                ]).value
-            }
-        ], sessionSynchronizer: sessionSynchronizer)
+        WaterBridgeConfiguration(
+            additionalRoutes: [
+                WaterBridgeRoute(api: "appInfo", version: 1) { message in
+                    WaterBridgeResponse.success(data: [
+                        "appName": "WaterBridgeExample",
+                        "version": Bundle.main.infoDictionary?[
+                            "CFBundleShortVersionString"
+                        ] as? String ?? "1.0",
+                        "requestData": message.data as? [String: Any] ?? [:]
+                    ]).value
+                }
+            ],
+            sessionSynchronizer: sessionSynchronizer
+        )
     }
 
     var body: some View {
