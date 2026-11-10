@@ -7,9 +7,10 @@
             body{
                 font:16px -apple-system,sans-serif;padding:24px;background:#f3f7fa;color:#16324a
             }
-            button{
+            button, a.system-link{
                 display:block;width:100%;padding:16px;margin:12px 0;border:0;border-radius:12px;background:#087eaa;color:white;font:inherit
             }
+            a.system-link{box-sizing:border-box;text-align:center;text-decoration:none}
             pre{
                 white-space:pre-wrap;overflow-wrap:anywhere;background:white;padding:16px;border-radius:12px
             }
@@ -34,6 +35,12 @@
         <button data-api="exit">앱 종료 · 확인 다이얼로그</button>
         <button data-api="unknownAPI">미지원 API 응답</button>
         
+        <h2>전화 · 문자 링크</h2>
+        <p>브릿지 없이 tel: / sms: 링크로 시스템 앱을 엽니다. 테스트용 번호이며 실제 번호로 수정해 사용하세요. 시뮬레이터에서는 연결이 제한될 수 있습니다.</p>
+        <a class="system-link" href="tel:01012345678">전화 앱 열기 · 010-1234-5678</a>
+        <a class="system-link" href="sms:01012345678">문자 앱 열기 · 010-1234-5678</a>
+        <a class="system-link" href="sms:01012345678" target="_blank" rel="noopener">새 창 링크로 문자 앱 열기</a>
+
         <pre id="result" aria-live="polite">버튼을 선택하세요.</pre>
         
         <script>
@@ -43,12 +50,12 @@
                     try {
                         const handler = window.webkit?.messageHandlers?.Bridge;
                         if (!handler) throw new Error('WaterBridgeExample 앱의 웹뷰에서 열어주세요.');
-                        const api = 'water://' + button.dataset.api;
+                        const api = button.dataset.api;
                         const opensPage = ['openSafari', 'openWebView'].includes(button.dataset.api);
                         const message = opensPage
-                            ? api + '?url=' + encodeURIComponent(document.getElementById('destination-url').value)
+                            ? {api, data: {url: document.getElementById('destination-url').value}}
                             : button.dataset.api === 'alert'
-                                ? api + '?message=' + encodeURIComponent(document.getElementById('alert-message').value)
+                                ? {api, data: {message: document.getElementById('alert-message').value}}
                                 : {api, data: {source: 'bridge-demo'}};
                         const response = await handler.postMessage(message);
                         output.textContent = JSON.stringify(response, null, 2);
